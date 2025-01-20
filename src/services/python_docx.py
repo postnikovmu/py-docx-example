@@ -8,6 +8,13 @@ def get_file_content_python_docx(file_path: str) -> None:
     The paragraph can contain more then one 'Run' object,
     in case there are several different formattings inside the paragraph.
 
+    ! limitation
+    Can't get formatting for old *.doc files
+    The primary reason python-docx cannot retrieve
+    formatting from old .doc files is due to the inherent differences between the two formats.
+    The .doc format uses a binary structure that encapsulates text and formatting in a way that is not compatible
+    with the XML-based approach of .docx. This means that any code written for python-docx,
+    which relies on parsing XML elements, will not function correctly when applied to .doc files
 
     :param file_path:
     :return:
