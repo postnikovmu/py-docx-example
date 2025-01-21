@@ -1,2 +1,3 @@
 from .python_docx import get_file_content_python_docx
 from .aspose_words import get_file_content_aspose_words
+from .docx2python import get_file_content_docx2python
