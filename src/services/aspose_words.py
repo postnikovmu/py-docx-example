@@ -47,3 +47,13 @@ def get_file_content_aspose_words(file_path: str) -> None:
 
     except IOError:
         print('There was an error opening the file!')
+
+
+def convert_file_doc_to_docx_aspose_words(file_path: str) -> None:
+    import aspose.words as aw
+
+    # Загрузка документа формата DOC
+    doc = aw.Document(file_path)
+
+    # Сохранение документа в формате DOCX
+    doc.save("C:/temp/Output.docx")
