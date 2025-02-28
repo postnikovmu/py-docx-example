@@ -41,6 +41,18 @@ def get_file_content_python_docx(file_path: str) -> None:
                 print(f'Font Color: {font_color}')
                 print(f'Font Name: {font_name}\n')
 
+        last_paragraph_text = None
+        last_paragraph_num = None
+
+        for element_num in range(doc.element.body):
+            element = doc.element.body[element_num]
+            if element.tag.endswith('p'):  #check for a paragraph
+                last_paragraph_text = element.text
+                last_paragraph_num = element_num
+            elif element.tag.endswith('tbl'):  #check for a paragraph
+                print(f"Таблица расположена после параграфа: '{last_paragraph_text}' номер '{element_num}'")
+                break
+
     except IOError:
         print('There was an error opening the file!')
 

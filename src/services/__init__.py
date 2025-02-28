@@ -3,3 +3,4 @@ from .aspose_words import get_file_content_aspose_words, convert_file_doc_to_doc
 from .docx2python import get_file_content_docx2python
 from .docx2txt import get_file_content_docx2txt
 from .spire_doc import get_file_content_spire_docs
+from .mammoth import get_file_content_mammoth_docx
