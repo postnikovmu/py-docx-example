@@ -23,7 +23,7 @@ def get_file_content_python_docx(file_path: str) -> None:
         # Open the document
         doc = docx.Document(file_path)
 
-
+        # Version 1
         # Iterate through paragraphs and print their text
         for para in doc.paragraphs:
             for run in para.runs:
@@ -41,17 +41,42 @@ def get_file_content_python_docx(file_path: str) -> None:
                 print(f'Font Color: {font_color}')
                 print(f'Font Name: {font_name}\n')
 
-        last_paragraph_text = None
-        last_paragraph_num = None
+        # Version 2
+        # Iterate through all elements and print their text
+        index_for_paragraphs = None
+        index_for_tables = None
 
-        for element_num in range(doc.element.body):
-            element = doc.element.body[element_num]
+        for element_num in range(len(doc.element.body.inner_content_elements)):
+
+            element = doc.element.body.inner_content_elements[element_num]
+            element_type = None
             if element.tag.endswith('p'):  #check for a paragraph
-                last_paragraph_text = element.text
-                last_paragraph_num = element_num
+                element_type = 'paragraph'
+                if index_for_paragraphs is None:
+                    index_for_paragraphs = 0
+                else:
+                    index_for_paragraphs += 1
+
             elif element.tag.endswith('tbl'):  #check for a paragraph
-                print(f"Таблица расположена после параграфа: '{last_paragraph_text}' номер '{element_num}'")
-                break
+                element_type = 'table'
+                if index_for_tables is None:
+                    index_for_tables = 0
+                else:
+                    index_for_tables += 1
+
+            if element_type == 'paragraph':
+                element_content = doc.paragraphs[index_for_paragraphs]
+                print(element_content.text)
+
+            if element_type == 'table':
+                print('>>>>>>Table')
+                element_content = doc.tables[index_for_tables]
+                for row in element_content.rows:
+                    for cell in row.cells:
+                        # print data from the cell
+                        for paragraph in cell.paragraphs:
+                            print(paragraph.text)
+                print('<<<<<<Table')
 
     except IOError:
         print('There was an error opening the file!')
