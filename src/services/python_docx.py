@@ -15,6 +15,12 @@ def get_theme_xml(docx_filename):
     return xml_content
 
 
+def get_styles_xml(docx_filename):
+    with zipfile.ZipFile(docx_filename) as zip_ref:
+        xml_content = zip_ref.read('word/styles.xml')
+    return xml_content
+
+
 def parse_xml(xml_string):
     return etree.fromstring(xml_string)
 
@@ -40,6 +46,19 @@ def get_theme_fonts(root):
                     minor_font = child.attrib['typeface']
 
     return major_font, minor_font
+
+
+def get_default_font_size(root):
+    default_font_size = None
+    ns = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+    for elem in root.iter():
+        # Проверяем, если текущий элемент — это w:sz
+        if elem.tag == ns + 'sz':
+            # Получаем значение атрибута val
+            default_font_size = str(float(elem.attrib.get(f'{ns}val'))/2)
+            print(f"Значение {type(default_font_size)} для w:sz: {default_font_size}")
+
+    return default_font_size
 
 
 def get_file_content_python_docx(file_path: str) -> None:
@@ -112,7 +131,7 @@ def get_file_content_python_docx(file_path: str) -> None:
                     text = run.text
                     is_bold = run.bold if run.bold is not None else False  # Default to False if None
                     is_italic = run.italic if run.italic is not None else False  # Default to False if None
-                    font_size = str(run.font.size) if run.font.size else 'Not Set'
+                    font_size = str(run.font.size.pt) if run.font.size else 'Not Set'
                     font_color = str(run.font.color.rgb) if run.font.color and run.font.color.rgb else 'Not Set'
                     font_name = str(run.font.name) if run.font.name else 'Not Set'
 
@@ -135,14 +154,18 @@ def get_file_content_python_docx(file_path: str) -> None:
 
         document_xml_content = get_document_xml(file_path)
         theme_xml_content = get_theme_xml(file_path)
+        styles_xml_content = get_styles_xml(file_path)
 
-        document = parse_xml(document_xml_content)
-        theme = parse_xml(theme_xml_content)
+        document_parsed = parse_xml(document_xml_content)
+        theme_parsed = parse_xml(theme_xml_content)
+        styles_parsed = parse_xml(styles_xml_content)
 
-        print_text_elements(document)
-        major_font, minor_font = get_theme_fonts(theme)
+        print_text_elements(document_parsed)
+        major_font, minor_font = get_theme_fonts(theme_parsed)
+        default_font_size = get_default_font_size(styles_parsed)
         print(f"Major Font: {major_font}")
         print(f"Minor Font: {minor_font}")
+        print(f"Default Font Size: {default_font_size}")
 
     except IOError:
         print('There was an error opening the file!')
