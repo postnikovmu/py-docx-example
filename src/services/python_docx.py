@@ -1,4 +1,23 @@
 import docx
+from lxml import etree
+import zipfile
+
+
+def get_word_xml(docx_filename):
+    with zipfile.ZipFile(docx_filename) as zip_ref:
+        xml_content = zip_ref.read('word/document.xml')
+    return xml_content
+
+
+def parse_xml(xml_string):
+    return etree.fromstring(xml_string)
+
+
+def print_text_elements(root):
+    for elem in root.iter():
+        if elem.tag.endswith('t'):
+            if elem.text is not None:
+                print("Текст из XML:", elem.text)
 
 
 def get_file_content_python_docx(file_path: str) -> None:
@@ -23,25 +42,23 @@ def get_file_content_python_docx(file_path: str) -> None:
         # Open the document
         doc = docx.Document(file_path)
 
-        # Version 1
-        # Iterate through paragraphs and print their text
-        for para in doc.paragraphs:
-            for run in para.runs:
-                text = run.text
-                is_bold = run.bold if run.bold is not None else False  # Default to False if None
-                is_italic = run.italic if run.italic is not None else False  # Default to False if None
-                font_size = str(run.font.size) if run.font.size else 'Not Set'
-                font_color = str(run.font.color.rgb) if run.font.color and run.font.color.rgb else 'Not Set'
-                font_name = str(run.font.name) if run.font.name else 'Not Set'
+        default_style = doc.styles['Normal']
+        print('Имя шрифта по умолчанию:', default_style.font.name)
+        print('Размер шрифта по умолчанию:', default_style.font.size)
 
-                print(f'Text: {text}')
-                print(f'Bold: {is_bold}')
-                print(f'Italic: {is_italic}')
-                print(f'Font Size: {font_size}')
-                print(f'Font Color: {font_color}')
-                print(f'Font Name: {font_name}\n')
+        for style in doc.styles:
+            print(style.name, style.style_id)
+            print(dir(style))
+            #font = style.font
 
-        # Version 2
+            # Получение параметров шрифта
+            #font_name = font.name  # Название шрифта
+            #font_size = font.size  # Размер шрифта (в пунктах)
+            #font_bold = font.bold  # Жирный текст (True/False)
+            #font_italic = font.italic  # Курсив (True/False)
+            #font_underline = font.underline  # Подчеркивание (None/Single/Double)
+            #print(font_name, font_size, font_bold, font_italic, font_underline)
+
         # Iterate through all elements and print their text
         index_for_paragraphs = None
         index_for_tables = None
@@ -68,6 +85,21 @@ def get_file_content_python_docx(file_path: str) -> None:
                 element_content = doc.paragraphs[index_for_paragraphs]
                 print(element_content.text)
 
+                for run in element_content.runs:
+                    text = run.text
+                    is_bold = run.bold if run.bold is not None else False  # Default to False if None
+                    is_italic = run.italic if run.italic is not None else False  # Default to False if None
+                    font_size = str(run.font.size) if run.font.size else 'Not Set'
+                    font_color = str(run.font.color.rgb) if run.font.color and run.font.color.rgb else 'Not Set'
+                    font_name = str(run.font.name) if run.font.name else 'Not Set'
+
+                    print(f'Run Text: {text}')
+                    print(f'Run Bold: {is_bold}')
+                    print(f'Run Italic: {is_italic}')
+                    print(f'Run Font Size: {font_size}')
+                    print(f'Run Font Color: {font_color}')
+                    print(f'Run Font Name: {font_name}\n')
+
             if element_type == 'table':
                 print('>>>>>>Table')
                 element_content = doc.tables[index_for_tables]
@@ -78,7 +110,10 @@ def get_file_content_python_docx(file_path: str) -> None:
                             print(paragraph.text)
                 print('<<<<<<Table')
 
+        xml_content = get_word_xml(file_path)
+        root = parse_xml(xml_content)
+        print_text_elements(root)
+
     except IOError:
         print('There was an error opening the file!')
 
-    print(file_path)
