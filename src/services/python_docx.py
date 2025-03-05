@@ -3,9 +3,15 @@ from lxml import etree
 import zipfile
 
 
-def get_word_xml(docx_filename):
+def get_document_xml(docx_filename):
     with zipfile.ZipFile(docx_filename) as zip_ref:
         xml_content = zip_ref.read('word/document.xml')
+    return xml_content
+
+
+def get_theme_xml(docx_filename):
+    with zipfile.ZipFile(docx_filename) as zip_ref:
+        xml_content = zip_ref.read('word/theme/theme1.xml')
     return xml_content
 
 
@@ -18,6 +24,22 @@ def print_text_elements(root):
         if elem.tag.endswith('t'):
             if elem.text is not None:
                 print("Текст из XML:", elem.text)
+
+
+def get_theme_fonts(root):
+    major_font = None
+    minor_font = None
+    for elem in root.iter():
+        if elem.tag.endswith('majorFont'):
+            for child in elem:
+                if child.tag.endswith('latin'):
+                    major_font = child.attrib['typeface']
+        elif elem.tag.endswith('minorFont'):
+            for child in elem:
+                if child.tag.endswith('latin'):
+                    minor_font = child.attrib['typeface']
+
+    return major_font, minor_font
 
 
 def get_file_content_python_docx(file_path: str) -> None:
@@ -43,12 +65,13 @@ def get_file_content_python_docx(file_path: str) -> None:
         doc = docx.Document(file_path)
 
         default_style = doc.styles['Normal']
+        print(dir(default_style))
         print('Имя шрифта по умолчанию:', default_style.font.name)
         print('Размер шрифта по умолчанию:', default_style.font.size)
 
         for style in doc.styles:
-            print(style.name, style.style_id)
-            print(dir(style))
+            print(style.name, style.style_id, style.type, style.font.name if hasattr(style, 'font') else None)
+
             #font = style.font
 
             # Получение параметров шрифта
@@ -110,9 +133,16 @@ def get_file_content_python_docx(file_path: str) -> None:
                             print(paragraph.text)
                 print('<<<<<<Table')
 
-        xml_content = get_word_xml(file_path)
-        root = parse_xml(xml_content)
-        print_text_elements(root)
+        document_xml_content = get_document_xml(file_path)
+        theme_xml_content = get_theme_xml(file_path)
+
+        document = parse_xml(document_xml_content)
+        theme = parse_xml(theme_xml_content)
+
+        print_text_elements(document)
+        major_font, minor_font = get_theme_fonts(theme)
+        print(f"Major Font: {major_font}")
+        print(f"Minor Font: {minor_font}")
 
     except IOError:
         print('There was an error opening the file!')
