@@ -52,11 +52,13 @@ def get_default_font_size(root):
     default_font_size = None
     ns = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
     for elem in root.iter():
-        # Проверяем, если текущий элемент — это w:sz
-        if elem.tag == ns + 'sz':
-            # Получаем значение атрибута val
-            default_font_size = str(float(elem.attrib.get(f'{ns}val'))/2)
-            print(f"Значение {type(default_font_size)} для w:sz: {default_font_size}")
+        if elem.tag.endswith('rPrDefault'):
+            for child_btw in elem:
+                if child_btw.tag.endswith('rPr'):
+                    for child in child_btw:
+                        if child.tag == ns + 'sz':
+                            default_font_size = str(float(child.attrib.get(f'{ns}val'))/2)
+                            print(f"Значение {type(default_font_size)} для w:sz: {default_font_size}")
 
     return default_font_size
 
